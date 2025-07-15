@@ -19,10 +19,8 @@ import faulthandler
 import os
 import subprocess
 import sys
-from glob import glob
 
 from setuptools import Extension
-from setuptools.command.test import test as TestCommand
 
 faulthandler.enable()
 
@@ -31,25 +29,7 @@ DEVELOPER_MODE = os.path.exists(os.path.join(basedir, 'MANIFEST.in'))
 if DEVELOPER_MODE:
     print('MANIFEST.in exists, running in developer mode')
 
-# Add S3QL sources
-sys.path.insert(0, os.path.join(basedir, 'src'))
-sys.path.insert(0, os.path.join(basedir, 'util'))
-import s3ql
-
-
-class pytest(TestCommand):
-    def run_tests(self):
-        # import here, cause outside the eggs aren't loaded
-        import pytest
-
-        errno = pytest.main(['tests'])
-        sys.exit(errno)
-
-
 def main():
-    with open(os.path.join(basedir, 'README.rst'), 'r') as fh:
-        long_desc = fh.read()
-
     compile_args = ['-Wall', '-Wextra', '-Wconversion', '-Wsign-compare']
 
     # Enable all fatal warnings only when compiling from Mercurial tip.
@@ -73,40 +53,7 @@ def main():
         compile_args.append('-Wno-unused-parameter')
         compile_args.append('-Wno-unused-function')
 
-    required_pkgs = [
-        'apsw >= 3.42.0',  # https://github.com/rogerbinns/apsw/issues/459
-        'cryptography',
-        'requests',
-        'defusedxml',
-        'google-auth',
-        'google-auth-oauthlib',
-        # Need trio.lowlevel
-        'trio >= 0.15',
-        'pyfuse3 >= 3.2.0, < 4.0',
-    ]
-
     setuptools.setup(
-        name='s3ql',
-        zip_safe=False,
-        version=s3ql.VERSION,
-        description='a full-featured file system for online data storage',
-        long_description=long_desc,
-        author='Nikolaus Rath',
-        author_email='Nikolaus@rath.org',
-        license='GPLv3',
-        classifiers=[
-            'Development Status :: 5 - Production/Stable',
-            'Environment :: No Input/Output (Daemon)',
-            'Environment :: Console',
-            'License :: OSI Approved :: GNU Library or Lesser General Public License (GPLv3)',
-            'Topic :: Internet',
-            'Operating System :: POSIX',
-            'Topic :: System :: Archiving',
-        ],
-        platforms=['POSIX', 'UNIX', 'Linux'],
-        package_dir={'': 'src'},
-        packages=setuptools.find_packages('src'),
-        provides=['s3ql'],
         ext_modules=[
             Extension(
                 's3ql.sqlite3ext',
@@ -116,35 +63,7 @@ def main():
                 depends=['src/s3ql/_sqlite3ext.cpp'],
             ),
         ],
-        data_files=[
-            (
-                'share/man/man1',
-                [
-                    os.path.join('doc/manpages/', x)
-                    for x in glob(os.path.join(basedir, 'doc', 'manpages', '*.1'))
-                ],
-            )
-        ],
-        entry_points={
-            'console_scripts': [
-                'mkfs.s3ql = s3ql.mkfs:main',
-                'fsck.s3ql = s3ql.fsck:main',
-                'mount.s3ql = s3ql.mount:main',
-                'umount.s3ql = s3ql.umount:main',
-                's3qlcp = s3ql.cp:main',
-                's3qlstat = s3ql.statfs:main',
-                's3qladm = s3ql.adm:main',
-                's3qlctrl = s3ql.ctrl:main',
-                's3qllock = s3ql.lock:main',
-                's3qlrm = s3ql.remove:main',
-                's3ql_oauth_client = s3ql.oauth_client:main',
-                's3ql_verify = s3ql.verify:main',
-            ]
-        },
-        install_requires=required_pkgs,
-        tests_require=['pytest >= 3.7'],
-        python_requires='>=3.8',
-        cmdclass={'upload_docs': upload_docs, 'build_cython': build_cython, 'pytest': pytest},
+        cmdclass={'upload_docs': upload_docs, 'build_cython': build_cython},
     )
 
 

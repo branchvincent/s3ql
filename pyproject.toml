@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel", "Cython"]
+requires = ["setuptools>=77.0.3", "Cython"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,30 +8,26 @@ version = "5.3.0"
 description = "A full-featured file system for online data storage"
 readme = "README.rst"
 requires-python = ">=3.8"
-license = { text = "GPLv3" }
-authors = [
-    { name = "Nikolaus Rath", email = "Nikolaus@rath.org" }
-]
-
+license = "GPL-3.0-or-later"
+authors = [{ name = "Nikolaus Rath", email = "Nikolaus@rath.org" }]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: No Input/Output (Daemon)",
     "Environment :: Console",
-    "License :: OSI Approved :: GNU Library or Lesser General Public License (GPLv3)",
     "Topic :: Internet",
     "Operating System :: POSIX",
     "Topic :: System :: Archiving",
 ]
-
 dependencies = [
-    "apsw >= 3.42.0",
+    "apsw >= 3.42.0",       # https://github.com/rogerbinns/apsw/issues/459
     "cryptography",
     "requests",
     "defusedxml",
     "google-auth",
     "google-auth-oauthlib",
+    # Need trio.lowlevel
     "trio >= 0.15",
-    "pyfuse3 >= 3.2.0, < 4.0",
+    # "pyfuse3 >= 3.2.0, < 4.0",
 ]
 
 [project.scripts]
@@ -47,6 +43,15 @@ s3qllock = "s3ql.lock:main"
 s3qlrm = "s3ql.remove:main"
 s3ql_oauth_client = "s3ql.oauth_client:main"
 s3ql_verify = "s3ql.verify:main"
+
+[project.optional-dependencies]
+dev = ["pytest >= 3.7"]
+
+[tool.setuptools]
+platforms = ["POSIX", "UNIX", "Linux"]
+
+[tool.setuptools.data-files]
+"share/man/man1" = ["doc/manpages/*.1"]
 
 [tool.pytest.ini_options]
 minversion = "3.7"
